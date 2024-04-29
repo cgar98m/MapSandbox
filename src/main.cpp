@@ -1,7 +1,7 @@
 #include "data/package/Package.h"
 #include "utils/package/Sampler.h"
 #include "utils/package/console/ConsolePrinter.h"
-#include "utils/package/Serializer.hpp"
+#include "utils/package/Serializer.h"
 
 int main(int argc, char **argv)
 {
