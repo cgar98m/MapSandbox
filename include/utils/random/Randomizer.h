@@ -31,7 +31,7 @@ public:
 
     bool        getBool();
     SYSTEMTIME  getDate(SYSTEMTIME min_date = UTILS_RANDOMIZER_MIN_DATE, SYSTEMTIME max_date = UTILS_RANDOMIZER_MAX_DATE);
-    size_t      getNumber(size_t min = UTILS_RANDOMIZER_DEFAULT_MIN_NUMBER, size_t max = UTILS_RANDOMIZER_DEFAULT_MAX_NUMBER);
+    size_t      get32bNumber(size_t min = UTILS_RANDOMIZER_DEFAULT_MIN_NUMBER, size_t max = UTILS_RANDOMIZER_DEFAULT_MAX_NUMBER);
     std::string getString(size_t min_size = UTILS_RANDOMIZER_DEFAULT_MIN_STRING_SIZE, size_t max_size = UTILS_RANDOMIZER_DEFAULT_MAX_STRING_SIZE);
 
 private:

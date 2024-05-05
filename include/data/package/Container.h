@@ -84,7 +84,7 @@ struct PackageFinder
     
     bool operator()(const PackageKey& key)
     {
-        return key.id == key.id && key.version == key.version;
+        return key.id == this->key.id && key.version == this->key.version;
     }
     
     bool operator()(const Package< ComponentContainer >& package)

@@ -62,7 +62,7 @@ struct PackageData
         return *this;
     }
 
-    bool               installing;
+    bool               installing;          // Run-time info
     bool               current;
     uint32_t           owner;
     std::string        description;
