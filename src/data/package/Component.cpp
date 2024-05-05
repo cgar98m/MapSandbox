@@ -1,23 +1,61 @@
 #include "data/package/Component.h"
 
-namespace NSPackage
+namespace Data
 {
 
-ComponentCompare::ComponentCompare(const Component& component)
-    : component_(component)
+/****************************
+ * DATA MODEL
+ ****************************/
+
+/*
+ * ComponentKey
+ */
+ComponentKey::ComponentKey()
+    : id()
+    , version()
 {
 }
 
-bool ComponentCompare::operator()(const Component& component) const
+ComponentKey::ComponentKey(const ComponentKey& key)
+    : id(key.id)
+    , version(key.version)
 {
-    return component_.first.id == component.first.id
-        && component_.first.version == component.first.version;
 }
 
-bool operator<(const ComponentKey& lhs, const ComponentKey& rhs)
+/*
+ * ComponentData
+ */
+ComponentData::ComponentData()
+    : description()
+    , path()
 {
-    return lhs.id < rhs.id
-        || lhs.id == rhs.id && lhs.version <= rhs.version;
+}
+
+ComponentData::ComponentData(const ComponentData& data)
+    : description(data.description)
+    , path(data.path)
+{
+}
+
+/*
+ * Component
+ */
+Component::Component()
+    : key()
+    , data()
+{
+}
+
+Component::Component(const Component& component)
+    : key(component.key)
+    , data(component.data)
+{
+}
+
+Component::Component(const ComponentKey& key, const ComponentData& data)
+    : key(key)
+    , data(data)
+{
 }
 
 };

@@ -12,7 +12,7 @@
 #define UTILS_PACKAGE_SERIALIZER_BUFFER_BASE_SIZE (1024L)
 #define UTILS_PACKAGE_SERIALIZER_BUFFER_MAX_SIZE  (static_cast<size_t>(-1))
 
-namespace NSPackage
+namespace Data
 {
 
 template <class Data>

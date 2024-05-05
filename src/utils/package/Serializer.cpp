@@ -1,6 +1,6 @@
 #include "utils/package/Serializer.h"
 
-namespace NSPackage
+namespace Data
 {
 
 template Serializer<ComponentContainer>;
@@ -54,7 +54,7 @@ bool Serializer<ComponentContainer>::serialize(BYTE*& buffer_out, size_t& buffer
     if (show_progress) std::cout << pad << "Serializing components" << std::endl;
     std::string parent_pad = pad + " ";
     std::string child_pad  = parent_pad + " ";
-    for (CompContConstIter it = data.begin(); it != data.end(); ++it)
+    for (CompContainerConstIter it = data.begin(); it != data.end(); ++it)
     {
         Serializer<Component> serializer(*it);
         
@@ -210,7 +210,7 @@ bool Serializer<PackageContainer>::serialize(BYTE*& buffer_out, size_t& buffer_s
     if (show_progress) std::cout << pad << "Serializing packages" << std::endl;
     std::string parent_pad = pad + " ";
     std::string child_pad  = parent_pad + " ";
-    for (PackContConstIter it = data.begin(); it != data.end(); ++it)
+    for (PackContainerConstIter it = data.begin(); it != data.end(); ++it)
     {
         Serializer<Package> serializer(*it);
         

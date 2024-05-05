@@ -2,26 +2,68 @@
 #define _DATA_PACKAGE_PACKAGE_H_
 
 #include <cstdint>
-#include <map>
 #include <string>
 
 #include <windows.h>
 
-#include "data/package/Component.h"
-
-namespace NSPackage
+namespace Data
 {
 
+/****************************
+ * DATA MODEL
+ ****************************/
 struct PackageKey
 {
+    PackageKey();
+    PackageKey(const PackageKey& key);
+
     uint32_t id;
     uint32_t version;
 };
 
+template < class ComponentContainer >
 struct PackageData
 {
-    bool               current;
+    PackageData()
+        : installing(false)
+        , current(false)
+        , owner(0)
+        , description()
+        , activation_date()
+        , install_date()
+        , components()
+    {
+    }
+
+    PackageData(const PackageData& data)
+        : installing(data.installing)
+        , current(data.current)
+        , owner(data.owner)
+        , description(data.description)
+        , activation_date(data.activation_date)
+        , install_date(data.install_date)
+        , components(data.components.begin(), data.components.end())
+    {
+    }
+
+    PackageData& operator=(const PackageData& data)
+    {
+        if (this != &data)
+        {
+            installing      = data.installing;
+            current         = data.current;
+            owner           = data.owner;
+            description     = data.description;
+            activation_date = data.activation_date;
+            install_date    = data.install_date;
+            components      = data.components;
+        }
+
+        return *this;
+    }
+
     bool               installing;
+    bool               current;
     uint32_t           owner;
     std::string        description;
     SYSTEMTIME         activation_date;
@@ -29,22 +71,41 @@ struct PackageData
     ComponentContainer components;
 };
 
-typedef std::pair< PackageKey, PackageData > Package;
-typedef std::map< PackageKey, PackageData >  PackageContainer;
-typedef PackageContainer::const_iterator     PackContConstIter;
-typedef PackageContainer::iterator           PackContIter;
-
-struct PackageCompare
+template < class ComponentContainer >
+struct Package
 {
-    PackageCompare(const Package& package);
+    Package()
+        : key()
+        , data()
+    {
+    }
 
-    bool operator()(const Package& package) const;
+    Package(const Package& package)
+        : key(package.key)
+        , data(package.data)
+    {
+    }
+    
+    Package(const PackageKey& key, const PackageData< ComponentContainer >& data)
+        : key(key)
+        , data(data)
+    {
+    }
 
-private:
-    const Package package_;
+    Package& operator=(const Package& package)
+    {
+        if (this != &package)
+        {
+            key  = package.key;
+            data = package.data;
+        }
+
+        return *this;
+    }
+
+    PackageKey                        key;
+    PackageData< ComponentContainer > data;
 };
-
-bool operator<(const PackageKey& lhs, const PackageKey& rhs);
 
 };
 

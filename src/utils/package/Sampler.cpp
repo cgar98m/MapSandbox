@@ -1,106 +1,253 @@
-#include "utils/package/Sampler.h"
+#include "utils/random/Sampler.h"
 
+#include <algorithm>
 #include <sstream>
 
-#define UTILS_PACKAGE_SAMPLER_COMP_ID_BASE  101
-#define UTILS_PACKAGE_SAMPLER_COMP_ID_MAX   102
-#define UTILS_PACKAGE_SAMPLER_COMP_VER_BASE 1
-#define UTILS_PACKAGE_SAMPLER_COMP_VER_MAX  2
+#include "data/package/Container.h"
 
-#define UTILS_PACKAGE_SAMPLER_PACK_ID_BASE  205
-#define UTILS_PACKAGE_SAMPLER_PACK_ID_MAX   206
-#define UTILS_PACKAGE_SAMPLER_PACK_VER_BASE 18
-#define UTILS_PACKAGE_SAMPLER_PACK_VER_MAX  19
+#define MIN_COMPONENTS        1
+#define MAX_COMPONENTS        4
+#define MIN_COMPONENT_ID      1
+#define MAX_COMPONENT_ID      1000
+#define MIN_COMPONENT_VERSION 1
+#define MAX_COMPONENT_VERSION 1000
 
-namespace NSPackage
+#define MIN_PACKAGES        1
+#define MAX_PACKAGES        2
+#define MIN_PACKAGE_ID      1
+#define MAX_PACKAGE_ID      1000
+#define MIN_PACKAGE_VERSION 1
+#define MAX_PACKAGE_VERSION 1000
+
+namespace Utils
 {
 
-ComponentContainer getSampleComponents()
-{
-    ComponentContainer cs;
+/****************************
+ * SAMPLES GENERATION
+ ****************************/
 
-    for (uint32_t id = UTILS_PACKAGE_SAMPLER_COMP_ID_BASE; id <= UTILS_PACKAGE_SAMPLER_COMP_ID_MAX; ++id)
+/*
+ * SAMPLER EXPLICIT INSTANTIATION
+ */
+template class Sampler< Data::ComponentsMap >;
+template class Sampler< Data::ComponentsVector >;
+
+template class Sampler< Data::Component >;
+template class Sampler< Data::ComponentKey >;
+template class Sampler< Data::ComponentData >;
+
+template class Sampler< Data::PackagesMap >;
+template class Sampler< Data::PackagesVector >;
+
+template class Sampler< Data::Package< Data::ComponentsMap > >;
+template class Sampler< Data::Package< Data::ComponentsVector > >;
+template class Sampler< Data::PackageKey >;
+template class Sampler< Data::PackageData< Data::ComponentsMap > >;
+template class Sampler< Data::PackageData< Data::ComponentsVector > >;
+
+/*
+ * Sampler::make< Data::ComponentsMap >
+ */
+template <>
+Data::ComponentsMap Sampler< Data::ComponentsMap >::make()
+{
+    Data::ComponentsMap data;
+    Data::Component     data_child;
+
+    size_t data_total = randomizer_.getNumber(MIN_COMPONENTS, MAX_COMPONENTS);
+    while (data_total-- > 0)
     {
-        for (uint32_t version = UTILS_PACKAGE_SAMPLER_COMP_VER_BASE; version <= UTILS_PACKAGE_SAMPLER_COMP_VER_MAX; ++version)
+        data_child = Sampler< Data::Component >().make();
+        while (std::find_if(data.begin(), data.end(), Data::ComponentFinder(data_child)) == data.end())
         {
-            cs.insert(getSampleComponent(id, version));
+            data_child.key = Sampler< Data::ComponentKey >().make();
         }
+
+        data.insert(std::pair< Data::ComponentKey, Data::ComponentData >(data_child.key, data_child.data));
     }
 
-    return cs;
+    return data;
 }
 
-Component getSampleComponent(uint32_t id, uint32_t version)
+/*
+ * Sampler::make< Data::ComponentsVector >
+ */
+template <>
+Data::ComponentsVector Sampler< Data::ComponentsVector >::make()
 {
-    Component      c;
-    ComponentKey&  c_key  = c.first;
-    ComponentData& c_data = c.second;
+    Data::ComponentsVector data;
+    Data::Component        data_child;
 
-    c_key.id      = id;
-    c_key.version = version;
-
-    std::stringstream ss;
-    ss << c_key.id << "-" << c_key.version;
-
-    c_data.description = ss.str() + "_description";
-    c_data.path        = ss.str() + "_path";
-
-    return c;
-}
-
-PackageContainer getSamplePackages()
-{
-    PackageContainer ps;
-
-    for (uint32_t id = UTILS_PACKAGE_SAMPLER_PACK_ID_BASE; id <= UTILS_PACKAGE_SAMPLER_PACK_ID_MAX; ++id)
+    size_t data_total = randomizer_.getNumber(MIN_COMPONENTS, MAX_COMPONENTS);
+    while (data_total-- > 0)
     {
-        for (uint32_t version = UTILS_PACKAGE_SAMPLER_PACK_VER_BASE; version <= UTILS_PACKAGE_SAMPLER_PACK_VER_MAX; ++version)
+        data_child = Sampler< Data::Component >().make();
+        while (std::find_if(data.begin(), data.end(), Data::ComponentFinder(data_child)) == data.end())
         {
-            ps.insert(getSamplePackage(id, version));
+            data_child.key = Sampler< Data::ComponentKey >().make();
         }
+
+        data.push_back(data_child);
     }
 
-    return ps;
+    return data;
 }
 
-Package getSamplePackage(uint32_t id, uint32_t version)
+/*
+ * Sampler::make< Data::Component >
+ */
+template <>
+Data::Component Sampler< Data::Component >::make()
 {
-    Package      p;
-    PackageKey&  p_key  = p.first;
-    PackageData& p_data = p.second;
+    return Data::Component(Sampler< Data::ComponentKey >().make(), Sampler< Data::ComponentData >().make());
+}
 
-    p_key.id      = id;
-    p_key.version = version;
+/*
+ * Sampler::make< Data::ComponentKey >
+ */
+template <>
+Data::ComponentKey Sampler< Data::ComponentKey >::make()
+{
+    Data::ComponentKey data;
 
-    std::stringstream ss;
-    ss << p_key.id << "-" << p_key.version;
+    data.id      = randomizer_.getNumber(MIN_COMPONENT_ID, MAX_COMPONENT_ID);
+    data.version = randomizer_.getNumber(MIN_COMPONENT_VERSION, MAX_COMPONENT_VERSION);
 
-    p_data.current     = static_cast<bool>((p_key.id + p_key.version) % 2);
-    p_data.installing  = false;
-    p_data.owner       = p_key.id + p_key.version;
-    p_data.description = ss.str() + "_description";
+    return data;
+}
 
-    p_data.activation_date.wYear         = 2024;
-    p_data.activation_date.wMonth        = 4;
-    p_data.activation_date.wDayOfWeek    = 3;
-    p_data.activation_date.wDay          = 24;
-    p_data.activation_date.wHour         = 23;
-    p_data.activation_date.wMinute       = 12;
-    p_data.activation_date.wSecond       = 25;
-    p_data.activation_date.wMilliseconds = 0;
+/*
+ * Sampler::make< Data::ComponentData >
+ */
+template <>
+Data::ComponentData Sampler< Data::ComponentData >::make()
+{
+    Data::ComponentData data;
 
-    p_data.install_date.wYear         = 0;
-    p_data.install_date.wMonth        = 0;
-    p_data.install_date.wDayOfWeek    = 0;
-    p_data.install_date.wDay          = 0;
-    p_data.install_date.wHour         = 0;
-    p_data.install_date.wMinute       = 0;
-    p_data.install_date.wSecond       = 0;
-    p_data.install_date.wMilliseconds = 0;
+    data.description = randomizer_.getString();
+    data.path        = randomizer_.getString();
 
-    p_data.components = getSampleComponents();
+    return data;
+}
 
-    return p;
+/*
+ * Sampler::make< Data::PackagesMap >
+ */
+template <>
+Data::PackagesMap Sampler< Data::PackagesMap >::make()
+{
+    Data::PackagesMap                    data;
+    Data::Package< Data::ComponentsMap > data_child;
+
+    size_t data_total = randomizer_.getNumber(MIN_COMPONENTS, MAX_COMPONENTS);
+    while (data_total-- > 0)
+    {
+        data_child = Sampler< Data::Package< Data::ComponentsMap > >().make();
+        while (std::find_if(data.begin(), data.end(), Data::PackageFinder< Data::ComponentsMap >(data_child)) == data.end())
+        {
+            data_child.key = Sampler< Data::PackageKey >().make();
+        }
+
+        data.insert(std::pair< Data::PackageKey, Data::PackageData< Data::ComponentsMap > >(data_child.key, data_child.data));
+    }
+
+    return data;
+}
+
+/*
+ * Sampler::make< Data::PackagesVector >
+ */
+template <>
+Data::PackagesVector Sampler< Data::PackagesVector >::make()
+{
+    Data::PackagesVector                    data;
+    Data::Package< Data::ComponentsVector > data_child;
+
+    size_t data_total = randomizer_.getNumber(MIN_COMPONENTS, MAX_COMPONENTS);
+    while (data_total-- > 0)
+    {
+        data_child = Sampler< Data::Package< Data::ComponentsVector > >().make();
+        while (std::find_if(data.begin(), data.end(), Data::PackageFinder< Data::ComponentsVector >(data_child)) == data.end())
+        {
+            data_child.key = Sampler< Data::PackageKey >().make();
+        }
+
+        data.push_back(data_child);
+    }
+
+    return data;
+}
+
+/*
+ * Sampler::make< Data::Package< Data::ComponentsMap > >
+ */
+template <>
+Data::Package< Data::ComponentsMap > Sampler< Data::Package< Data::ComponentsMap > >::make()
+{
+    return Data::Package< Data::ComponentsMap >(Sampler< Data::PackageKey >().make(),
+        Sampler< Data::PackageData< Data::ComponentsMap > >().make());
+}
+
+/*
+ * Sampler::make< Data::Package< Data::ComponentsVector > >
+ */
+template <>
+Data::Package< Data::ComponentsVector > Sampler< Data::Package< Data::ComponentsVector > >::make()
+{
+    return Data::Package< Data::ComponentsVector >(Sampler< Data::PackageKey >().make(),
+        Sampler< Data::PackageData< Data::ComponentsVector > >().make());
+}
+
+/*
+ * Sampler::make< Data::PackageKey >
+ */
+template <>
+Data::PackageKey Sampler< Data::PackageKey >::make()
+{
+    Data::PackageKey data;
+
+    data.id      = randomizer_.getNumber(MIN_PACKAGE_ID, MAX_PACKAGE_ID);
+    data.version = randomizer_.getNumber(MIN_PACKAGE_VERSION, MAX_PACKAGE_VERSION);
+
+    return data;
+}
+
+/*
+ * Sampler::make< Data::PackageData< Data::ComponentsMap > >
+ */
+template <>
+Data::PackageData< Data::ComponentsMap > Sampler< Data::PackageData< Data::ComponentsMap > >::make()
+{
+    Data::PackageData< Data::ComponentsMap > data;
+
+    data.installing      = randomizer_.getBool();
+    data.current         = randomizer_.getBool();
+    data.owner           = randomizer_.getNumber();
+    data.description     = randomizer_.getString();
+    data.activation_date = randomizer_.getDate();
+    data.install_date    = randomizer_.getDate(data.activation_date);
+    data.components      = Sampler< Data::ComponentsMap >().make();
+
+    return data;
+}
+
+/*
+ * Sampler::make< Data::PackageData< Data::ComponentsVector > >
+ */
+template <>
+Data::PackageData< Data::ComponentsVector > Sampler< Data::PackageData< Data::ComponentsVector > >::make()
+{
+    Data::PackageData< Data::ComponentsVector > data;
+
+    data.installing      = randomizer_.getBool();
+    data.current         = randomizer_.getBool();
+    data.owner           = randomizer_.getNumber();
+    data.description     = randomizer_.getString();
+    data.activation_date = randomizer_.getDate();
+    data.install_date    = randomizer_.getDate(data.activation_date);
+    data.components      = Sampler< Data::ComponentsVector >().make();
+
+    return data;
 }
 
 };

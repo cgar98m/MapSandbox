@@ -2,40 +2,41 @@
 #define _DATA_PACKAGE_COMPONENT_H_
 
 #include <cstdint>
-#include <map>
 #include <string>
 
-namespace NSPackage
+namespace Data
 {
 
+/****************************
+ * DATA MODEL
+ ****************************/
 struct ComponentKey
 {
+    ComponentKey();
+    ComponentKey(const ComponentKey& key);
+
     uint32_t id;
     uint32_t version;
 };
 
 struct ComponentData
 {
+    ComponentData();
+    ComponentData(const ComponentData& data);
+
     std::string description;
     std::string path;
 };
 
-typedef std::pair< ComponentKey, ComponentData > Component;
-typedef std::map< ComponentKey, ComponentData >  ComponentContainer;
-typedef ComponentContainer::const_iterator       CompContConstIter;
-typedef ComponentContainer::iterator             CompContIter;
-
-struct ComponentCompare
+struct Component
 {
-    ComponentCompare(const Component& component);
+    Component();
+    Component(const Component& component);
+    Component(const ComponentKey& key, const ComponentData& data);
 
-    bool operator()(const Component& component) const;
-
-private:
-    const Component component_;
+    ComponentKey  key;
+    ComponentData data;
 };
-
-bool operator<(const ComponentKey& lhs, const ComponentKey& rhs);
 
 };
 
